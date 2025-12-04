@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { DataTable } from "./DataTable";
 import { v4 as uuidv4 } from "uuid";
 import { convertDateToObj, convertDateToStr } from "../formatDate";
+import { validateForm } from "../inputsValidation";
 
 export type FormDataProps = {
   id: string;
@@ -18,7 +19,8 @@ export function TrainingForm() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("form submitted");
+
+    if (!validateForm(inputDate, inputDistance)) return;
 
     const formattedDate = convertDateToObj(inputDate);
     const formattedDistance = Number(inputDistance);

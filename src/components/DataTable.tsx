@@ -3,23 +3,27 @@ import type { FormDataProps } from "./TrainingForm";
 
 type DataTableProps = {
   trainings: FormDataProps[];
-    setTrainings: React.Dispatch<React.SetStateAction<FormDataProps[]>>;
-    setInputDate:React.Dispatch<React.SetStateAction<string>>;
-    setInputDistance:React.Dispatch<React.SetStateAction<string>>;
+  setTrainings: React.Dispatch<React.SetStateAction<FormDataProps[]>>;
+  setInputDate: React.Dispatch<React.SetStateAction<string>>;
+  setInputDistance: React.Dispatch<React.SetStateAction<string>>;
 };
 
-export function DataTable({ trainings, setTrainings, setInputDate, setInputDistance }: DataTableProps) {
-
+export function DataTable({
+  trainings,
+  setTrainings,
+  setInputDate,
+  setInputDistance,
+}: DataTableProps) {
   const deleteTraining = (trainingId: string) => {
     setTrainings(trainings.filter((t) => t.id !== trainingId));
-    };
-    
-    const editTraining = (training: FormDataProps) => {
-        const date = convertDateToStr(training.date);
-        const formattedDate = date.slice(0, 6) + date.slice(8);
-        setInputDate(formattedDate);
-        setInputDistance((training.distance).toString());
-    };
+  };
+
+  const editTraining = (training: FormDataProps) => {
+    const date = convertDateToStr(training.date);
+    const formattedDate = date.slice(0, 6) + date.slice(8);
+    setInputDate(formattedDate);
+    setInputDistance(training.distance.toString());
+  };
 
   return (
     <div className="data-table">
