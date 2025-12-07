@@ -1,8 +1,7 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { DataTable } from "./DataTable";
 import { v4 as uuidv4 } from "uuid";
-import { convertDateToObj, convertDateToStr } from "../formatDate";
-import { validateForm } from "../inputsValidation";
+import ErrorModal from "./ErrorModal";
 
 export type FormDataProps = {
   id: string;
@@ -14,43 +13,58 @@ export function TrainingForm() {
   const [inputDate, setInputDate] = useState<string>("");
   const [inputDistance, setInputDistance] = useState<string>("");
 
-  const [formData, setFormData] = useState<FormDataProps | null>(null);
   const [trainings, setTrainings] = useState<FormDataProps[]>([]);
+  const [modal, showModal] = useState<boolean>(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!validateForm(inputDate, inputDistance)) return;
+    if (Number(inputDistance) <= 0) {
+      showModal(true);
+      return;
+    }
 
-    const formattedDate = convertDateToObj(inputDate);
-    const formattedDistance = Number(inputDistance);
-    setFormData({
-      id: uuidv4(),
-      date: formattedDate,
-      distance: formattedDistance,
+    const dateObj = new Date(inputDate);
+    const distanceNum = Number(inputDistance);
+
+    if (editingId) {
+      setTrainings((prev) =>
+        prev.map((t) =>
+          t.id === editingId
+            ? { ...t, date: dateObj, distance: distanceNum }
+            : t
+        )
+      );
+
+      setEditingId(null);
+      handleResetForm();
+      return;
+    }
+
+    setTrainings((prev) => {
+      const exists = prev.find(
+        (t) => t.date.toISOString().slice(0, 10) === inputDate
+      );
+
+      if (exists) {
+        return prev
+          .map((t) =>
+            t.date.toISOString().slice(0, 10) === inputDate
+              ? { ...t, distance: t.distance + distanceNum }
+              : t
+          )
+          .sort((a, b) => +b.date - +a.date);
+      }
+
+      return [
+        ...prev,
+        { id: uuidv4(), date: dateObj, distance: distanceNum },
+      ].sort((a, b) => +b.date - +a.date);
     });
+
     handleResetForm();
   };
-
-  useEffect(() => {
-    if (formData) {
-      setTrainings((prev) => {
-        const trainingAlreadyExist = prev?.some(
-          (t) => convertDateToStr(t.date) === convertDateToStr(formData.date)
-        );
-        if (trainingAlreadyExist && prev) {
-          return prev
-            .map((t) =>
-              convertDateToStr(t.date) === convertDateToStr(formData.date)
-                ? { ...t, distance: t.distance + formData.distance }
-                : t
-            )
-            .sort((a, b) => +b.date - +a.date);
-        }
-        return [...prev, formData].sort((a, b) => +b.date - +a.date);
-      });
-    }
-  }, [formData]);
 
   const handleResetForm = () => {
     setInputDate("");
@@ -63,14 +77,13 @@ export function TrainingForm() {
         <form id="trainingForm" onSubmit={handleSubmit}>
           <div className="form-row">
             <div className="form-group">
-              <label htmlFor="date">Дата (ДД.ММ.ГГ)</label>
+              <label htmlFor="date">Дата (ДД.ММ.ГГГГ)</label>
               <input
-                type="text"
+                type="date"
+                max={new Date().toISOString().slice(0, 10)}
                 id="date"
-                name="date"
                 required
                 value={inputDate}
-                placeholder="01.01.25"
                 onChange={(e) => setInputDate(e.target.value)}
               />
             </div>
@@ -80,7 +93,6 @@ export function TrainingForm() {
               <input
                 type="number"
                 id="distance"
-                name="distance"
                 step="0.1"
                 min="0"
                 required
@@ -96,12 +108,16 @@ export function TrainingForm() {
           </div>
         </form>
       </div>
+
       <DataTable
         trainings={trainings}
         setTrainings={setTrainings}
         setInputDate={setInputDate}
         setInputDistance={setInputDistance}
+        setEditingId={setEditingId}
       />
+
+      <ErrorModal show={modal} onClose={() => showModal(false)} />
     </>
   );
 }

@@ -5,8 +5,3 @@ export function convertDateToStr(date: Date): string {
 
   return `${day}.${month}.${year}`;
 }
-
-export function convertDateToObj (date: string) : Date{
-  const [day, month, year] = date.split(".");
-  return new Date(`20${year}-${month}-${day}`);
-};

@@ -6,6 +6,7 @@ type DataTableProps = {
   setTrainings: React.Dispatch<React.SetStateAction<FormDataProps[]>>;
   setInputDate: React.Dispatch<React.SetStateAction<string>>;
   setInputDistance: React.Dispatch<React.SetStateAction<string>>;
+  setEditingId: React.Dispatch<React.SetStateAction<string | null>>;
 };
 
 export function DataTable({
@@ -13,22 +14,22 @@ export function DataTable({
   setTrainings,
   setInputDate,
   setInputDistance,
+  setEditingId,
 }: DataTableProps) {
   const deleteTraining = (trainingId: string) => {
     setTrainings(trainings.filter((t) => t.id !== trainingId));
   };
 
   const editTraining = (training: FormDataProps) => {
-    const date = convertDateToStr(training.date);
-    const formattedDate = date.slice(0, 6) + date.slice(8);
-    setInputDate(formattedDate);
+    setInputDate(training.date.toISOString().slice(0, 10));
     setInputDistance(training.distance.toString());
+    setEditingId(training.id);
   };
 
   return (
     <div className="data-table">
       <div className="table-header">
-        <div className="col-date">Дата (ДД.ММ.ГГ)</div>
+        <div className="col-date">Дата (ДД.ММ.ГГГГ)</div>
         <div className="col-distance">Пройдено км</div>
         <div className="col-actions">Действия</div>
       </div>
